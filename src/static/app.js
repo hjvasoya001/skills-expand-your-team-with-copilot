@@ -498,17 +498,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Format the schedule using the new helper function
     const formattedSchedule = formatSchedule(details);
-    const activitySlug = name
+    const normalizedActivityName =
+      typeof name === "string" && name.trim() ? name.trim() : "Activity";
+    const activitySlug = normalizedActivityName
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "");
-    const fallbackSlug = `activity-${Array.from(name).reduce(
+    const numericSlug = `activity-${Array.from(normalizedActivityName).reduce(
       (sum, char) => sum + char.charCodeAt(0),
       0
     )}`;
-    const safeSlug = activitySlug || fallbackSlug;
+    const safeSlug = activitySlug || numericSlug;
     const activityUrl = `${window.location.origin}${window.location.pathname}#activity-${safeSlug}`;
-    const shareText = `Join me for ${name} at Mergington High School! ${formattedSchedule}`;
+    const shareText = `Join me for ${normalizedActivityName} at Mergington High School! ${formattedSchedule}`;
     const shareLinks = {
       whatsapp: `https://wa.me/?text=${encodeURIComponent(
         `${shareText} ${activityUrl}`
@@ -593,9 +595,9 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
       <div class="share-actions">
         <span class="share-label">Share:</span>
-        <button class="share-button" data-share-url="${shareLinks.whatsapp}" aria-label="Share on WhatsApp">WhatsApp</button>
-        <button class="share-button" data-share-url="${shareLinks.facebook}" aria-label="Share on Facebook">Facebook</button>
-        <button class="share-button" data-share-url="${shareLinks.x}" aria-label="Share on X">X</button>
+        <button class="share-button" data-share-platform="whatsapp" aria-label="Share on WhatsApp">WhatsApp</button>
+        <button class="share-button" data-share-platform="facebook" aria-label="Share on Facebook">Facebook</button>
+        <button class="share-button" data-share-platform="x" aria-label="Share on X">X</button>
       </div>
     `;
 
@@ -618,7 +620,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const shareButtons = activityCard.querySelectorAll(".share-button");
     shareButtons.forEach((button) => {
       button.addEventListener("click", () => {
-        const shareUrl = button.dataset.shareUrl;
+        const sharePlatform = button.dataset.sharePlatform;
+        const shareUrl = shareLinks[sharePlatform];
+        if (!shareUrl) {
+          showMessage("Sharing link is invalid. Please try again.", "error");
+          return;
+        }
         try {
           const parsedShareUrl = new URL(shareUrl);
           const trustedShareHosts = [

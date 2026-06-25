@@ -467,13 +467,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Display filtered activities
-    Object.entries(filteredActivities).forEach(([name, details]) => {
-      renderActivityCard(name, details);
+    Object.entries(filteredActivities).forEach(([name, details], index) => {
+      renderActivityCard(name, details, index);
     });
   }
 
   // Function to render a single activity card
-  function renderActivityCard(name, details) {
+  function renderActivityCard(name, details, cardIndex = 0) {
     const activityCard = document.createElement("div");
     activityCard.className = "activity-card";
 
@@ -499,7 +499,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // Format the schedule using the new helper function
     const formattedSchedule = formatSchedule(details);
     const normalizedActivityName =
-      typeof name === "string" && name.trim() ? name.trim() : "Activity";
+      typeof name === "string" && name.trim()
+        ? name.trim()
+        : `School Activity ${cardIndex + 1}`;
     const activitySlug = normalizedActivityName
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
@@ -511,7 +513,8 @@ document.addEventListener("DOMContentLoaded", () => {
       )
     )}`;
     const safeSlug = activitySlug || hashSlug;
-    const activityUrl = `${window.location.origin}${window.location.pathname}#activity-${safeSlug}`;
+    const activityAnchorId = `activity-${safeSlug}-${cardIndex}`;
+    const activityUrl = `${window.location.origin}${window.location.pathname}${window.location.search}#${activityAnchorId}`;
     const shareText = `Join me for ${normalizedActivityName} at Mergington High School! ${formattedSchedule}`;
     const shareLinks = {
       whatsapp: `https://wa.me/?text=${encodeURIComponent(
@@ -532,7 +535,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </span>
     `;
 
-    activityCard.id = `activity-${safeSlug}`;
+    activityCard.id = activityAnchorId;
 
     // Create capacity indicator
     const capacityIndicator = `
@@ -636,7 +639,6 @@ document.addEventListener("DOMContentLoaded", () => {
             "wa.me",
             "www.facebook.com",
             "twitter.com",
-            "x.com",
           ];
           if (
             parsedShareUrl.protocol === "https:" &&

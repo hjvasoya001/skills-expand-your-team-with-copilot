@@ -504,11 +504,13 @@ document.addEventListener("DOMContentLoaded", () => {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "");
-    const numericSlug = `activity-${Array.from(normalizedActivityName).reduce(
-      (sum, char) => sum + char.charCodeAt(0),
-      0
+    const hashSlug = `activity-${Math.abs(
+      Array.from(normalizedActivityName).reduce(
+        (hash, char) => (hash << 5) - hash + char.charCodeAt(0),
+        0
+      )
     )}`;
-    const safeSlug = activitySlug || numericSlug;
+    const safeSlug = activitySlug || hashSlug;
     const activityUrl = `${window.location.origin}${window.location.pathname}#activity-${safeSlug}`;
     const shareText = `Join me for ${normalizedActivityName} at Mergington High School! ${formattedSchedule}`;
     const shareLinks = {
@@ -529,6 +531,8 @@ document.addEventListener("DOMContentLoaded", () => {
         ${typeInfo.label}
       </span>
     `;
+
+    activityCard.id = `activity-${safeSlug}`;
 
     // Create capacity indicator
     const capacityIndicator = `
@@ -623,7 +627,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const sharePlatform = button.dataset.sharePlatform;
         const shareUrl = shareLinks[sharePlatform];
         if (!shareUrl) {
-          showMessage("Sharing link is invalid. Please try again.", "error");
+          showMessage("Unable to share to this platform.", "error");
           return;
         }
         try {
@@ -640,10 +644,10 @@ document.addEventListener("DOMContentLoaded", () => {
           ) {
             window.open(parsedShareUrl.href, "_blank", "noopener,noreferrer");
           } else {
-            showMessage("Sharing link is invalid. Please try again.", "error");
+            showMessage("Share feature is temporarily unavailable.", "error");
           }
         } catch (error) {
-          showMessage("Sharing link is invalid. Please try again.", "error");
+          showMessage("Share link could not be created.", "error");
         }
       });
     });

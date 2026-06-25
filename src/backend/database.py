@@ -2,7 +2,7 @@
 MongoDB database configuration and setup for Mergington High School API
 """
 
-from pymongo import MongoClient
+from pymongo import MongoClient, UpdateOne
 from argon2 import PasswordHasher
 
 # Connect to MongoDB
@@ -20,6 +20,8 @@ def hash_password(password):
 def init_database():
     """Initialize database if empty"""
 
+    difficulty_backfills = []
+
     # Initialize any missing default activities without overwriting existing data
     for name, details in initial_activities.items():
         activities_collection.update_one(
@@ -27,6 +29,17 @@ def init_database():
             {"$setOnInsert": {"_id": name, **details}},
             upsert=True
         )
+
+        if "difficulty_level" in details:
+            difficulty_backfills.append(
+                UpdateOne(
+                    {"_id": name, "difficulty_level": {"$exists": False}},
+                    {"$set": {"difficulty_level": details["difficulty_level"]}}
+                )
+            )
+
+    if difficulty_backfills:
+        activities_collection.bulk_write(difficulty_backfills, ordered=False)
             
     # Initialize teacher accounts if empty
     if teachers_collection.count_documents({}) == 0:
@@ -48,6 +61,7 @@ initial_activities = {
     },
     "Programming Class": {
         "description": "Learn programming fundamentals and build software projects",
+        "difficulty_level": "Beginner",
         "schedule": "Tuesdays and Thursdays, 7:00 AM - 8:00 AM",
         "schedule_details": {
             "days": ["Tuesday", "Thursday"],
@@ -147,6 +161,7 @@ initial_activities = {
     },
     "Weekend Robotics Workshop": {
         "description": "Build and program robots in our state-of-the-art workshop",
+        "difficulty_level": "Intermediate",
         "schedule": "Saturdays, 10:00 AM - 2:00 PM",
         "schedule_details": {
             "days": ["Saturday"],
@@ -158,6 +173,7 @@ initial_activities = {
     },
     "Science Olympiad": {
         "description": "Weekend science competition preparation for regional and state events",
+        "difficulty_level": "Advanced",
         "schedule": "Saturdays, 1:00 PM - 4:00 PM",
         "schedule_details": {
             "days": ["Saturday"],

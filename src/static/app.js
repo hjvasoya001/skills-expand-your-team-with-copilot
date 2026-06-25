@@ -502,7 +502,12 @@ document.addEventListener("DOMContentLoaded", () => {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "");
-    const activityUrl = `${window.location.origin}${window.location.pathname}#activity-${activitySlug || "activity"}`;
+    const fallbackSlug = `activity-${Array.from(name).reduce(
+      (sum, char) => sum + char.charCodeAt(0),
+      0
+    )}`;
+    const safeSlug = activitySlug || fallbackSlug;
+    const activityUrl = `${window.location.origin}${window.location.pathname}#activity-${safeSlug}`;
     const shareText = `Join me for ${name} at Mergington High School! ${formattedSchedule}`;
     const shareLinks = {
       whatsapp: `https://wa.me/?text=${encodeURIComponent(
@@ -616,9 +621,15 @@ document.addEventListener("DOMContentLoaded", () => {
         const shareUrl = button.dataset.shareUrl;
         try {
           const parsedShareUrl = new URL(shareUrl);
+          const trustedShareHosts = [
+            "wa.me",
+            "www.facebook.com",
+            "twitter.com",
+            "x.com",
+          ];
           if (
-            parsedShareUrl.protocol === "http:" ||
-            parsedShareUrl.protocol === "https:"
+            parsedShareUrl.protocol === "https:" &&
+            trustedShareHosts.includes(parsedShareUrl.hostname)
           ) {
             window.open(parsedShareUrl.href, "_blank", "noopener,noreferrer");
           } else {

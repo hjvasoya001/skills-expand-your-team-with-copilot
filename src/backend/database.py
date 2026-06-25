@@ -24,7 +24,7 @@ def init_database():
     for name, details in initial_activities.items():
         activities_collection.update_one(
             {"_id": name},
-            {"$setOnInsert": details},
+            {"$setOnInsert": {"_id": name, **details}},
             upsert=True
         )
             

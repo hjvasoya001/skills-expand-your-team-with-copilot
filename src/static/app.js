@@ -436,7 +436,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // Apply difficulty filter
-      if (currentDifficultyFilter === "all-levels") {
+      if (currentDifficultyFilter === "AllLevels") {
         if (details.difficulty_level) {
           return;
         }

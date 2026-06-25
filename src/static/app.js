@@ -498,7 +498,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Format the schedule using the new helper function
     const formattedSchedule = formatSchedule(details);
-    const activityUrl = window.location.href.split("#")[0];
+    const activitySlug = name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+    const activityUrl = `${window.location.origin}${window.location.pathname}#activity-${activitySlug || "activity"}`;
     const shareText = `Join me for ${name} at Mergington High School! ${formattedSchedule}`;
     const shareLinks = {
       whatsapp: `https://wa.me/?text=${encodeURIComponent(
@@ -610,7 +614,19 @@ document.addEventListener("DOMContentLoaded", () => {
     shareButtons.forEach((button) => {
       button.addEventListener("click", () => {
         const shareUrl = button.dataset.shareUrl;
-        window.open(shareUrl, "_blank", "noopener,noreferrer");
+        try {
+          const parsedShareUrl = new URL(shareUrl);
+          if (
+            parsedShareUrl.protocol === "http:" ||
+            parsedShareUrl.protocol === "https:"
+          ) {
+            window.open(parsedShareUrl.href, "_blank", "noopener,noreferrer");
+          } else {
+            showMessage("Sharing link is invalid. Please try again.", "error");
+          }
+        } catch (error) {
+          showMessage("Sharing link is invalid. Please try again.", "error");
+        }
       });
     });
 

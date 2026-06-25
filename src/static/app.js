@@ -502,18 +502,7 @@ document.addEventListener("DOMContentLoaded", () => {
       typeof name === "string" && name.trim()
         ? name.trim()
         : `School Activity ${cardIndex + 1}`;
-    const activitySlug = normalizedActivityName
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "");
-    const hashSlug = `activity-${Math.abs(
-      Array.from(normalizedActivityName).reduce(
-        (hash, char) => (hash << 5) - hash + char.charCodeAt(0),
-        0
-      )
-    )}`;
-    const safeSlug = activitySlug || hashSlug;
-    const activityAnchorId = `activity-${safeSlug}-${cardIndex}`;
+    const activityAnchorId = `activity-${cardIndex}`;
     const activityUrl = `${window.location.origin}${window.location.pathname}${window.location.search}#${activityAnchorId}`;
     const shareText = `Join me for ${normalizedActivityName} at Mergington High School! ${formattedSchedule}`;
     const shareLinks = {
@@ -625,6 +614,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const shareButtons = activityCard.querySelectorAll(".share-button");
+    const trustedShareHosts = ["wa.me", "www.facebook.com", "twitter.com"];
     shareButtons.forEach((button) => {
       button.addEventListener("click", () => {
         const sharePlatform = button.dataset.sharePlatform;
@@ -635,11 +625,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         try {
           const parsedShareUrl = new URL(shareUrl);
-          const trustedShareHosts = [
-            "wa.me",
-            "www.facebook.com",
-            "twitter.com",
-          ];
           if (
             parsedShareUrl.protocol === "https:" &&
             trustedShareHosts.includes(parsedShareUrl.hostname)

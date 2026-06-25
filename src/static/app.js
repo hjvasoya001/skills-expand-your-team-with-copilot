@@ -463,11 +463,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // Apply difficulty filter
-      if (currentDifficultyFilter === "AllLevels") {
-        if (details.difficulty_level) {
-          return;
-        }
-      } else if (
+      if (
+        currentDifficultyFilter !== "AllLevels" &&
         currentDifficultyFilter &&
         details.difficulty_level !== currentDifficultyFilter
       ) {

@@ -463,11 +463,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // Apply difficulty filter
-      if (currentDifficultyFilter === "AllLevels") {
-        if (details.difficulty_level) {
-          return;
-        }
-      } else if (
+      if (
+        currentDifficultyFilter !== "AllLevels" &&
         currentDifficultyFilter &&
         details.difficulty_level !== currentDifficultyFilter
       ) {
@@ -517,13 +514,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Display filtered activities
-    Object.entries(filteredActivities).forEach(([name, details]) => {
-      renderActivityCard(name, details);
+    Object.entries(filteredActivities).forEach(([name, details], index) => {
+      renderActivityCard(name, details, index);
     });
   }
 
   // Function to render a single activity card
-  function renderActivityCard(name, details) {
+  function renderActivityCard(name, details, cardIndex = 0) {
     const activityCard = document.createElement("div");
     activityCard.className = "activity-card";
 
@@ -548,6 +545,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Format the schedule using the new helper function
     const formattedSchedule = formatSchedule(details);
+    const normalizedActivityName =
+      typeof name === "string" && name.trim()
+        ? name.trim()
+        : `School Activity ${cardIndex + 1}`;
+    const activityAnchorId = `activity-${cardIndex}`;
+    const activityUrl = `${window.location.origin}${window.location.pathname}${window.location.search}#${activityAnchorId}`;
+    const shareText = `Join me for ${normalizedActivityName} at Mergington High School! ${formattedSchedule}`;
+    const shareLinks = {
+      whatsapp: `https://wa.me/?text=${encodeURIComponent(
+        `${shareText} ${activityUrl}`
+      )}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+        activityUrl
+      )}&quote=${encodeURIComponent(shareText)}`,
+      x: `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+        shareText
+      )}&url=${encodeURIComponent(activityUrl)}`,
+    };
 
     // Create activity tag
     const tagHtml = `
@@ -561,6 +576,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <p class="difficulty-level"><strong>Difficulty:</strong> ${details.difficulty_level}</p>
     `
       : "";
+    activityCard.id = activityAnchorId;
 
     // Create capacity indicator
     const capacityIndicator = `
@@ -626,6 +642,12 @@ document.addEventListener("DOMContentLoaded", () => {
         `
         }
       </div>
+      <div class="share-actions">
+        <span class="share-label">Share:</span>
+        <button class="share-button" data-share-platform="whatsapp" aria-label="Share on WhatsApp">WhatsApp</button>
+        <button class="share-button" data-share-platform="facebook" aria-label="Share on Facebook">Facebook</button>
+        <button class="share-button" data-share-platform="x" aria-label="Share on X">X</button>
+      </div>
     `;
 
     // Add click handlers for delete buttons
@@ -643,6 +665,32 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
     }
+
+    const shareButtons = activityCard.querySelectorAll(".share-button");
+    const trustedShareHosts = ["wa.me", "www.facebook.com", "twitter.com"];
+    shareButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const sharePlatform = button.dataset.sharePlatform;
+        const shareUrl = shareLinks[sharePlatform];
+        if (!shareUrl) {
+          showMessage("Unable to share to this platform.", "error");
+          return;
+        }
+        try {
+          const parsedShareUrl = new URL(shareUrl);
+          if (
+            parsedShareUrl.protocol === "https:" &&
+            trustedShareHosts.includes(parsedShareUrl.hostname)
+          ) {
+            window.open(parsedShareUrl.href, "_blank", "noopener,noreferrer");
+          } else {
+            showMessage("Share feature is temporarily unavailable.", "error");
+          }
+        } catch (error) {
+          showMessage("Share link could not be created.", "error");
+        }
+      });
+    });
 
     activitiesList.appendChild(activityCard);
   }

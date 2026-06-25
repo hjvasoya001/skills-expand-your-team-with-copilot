@@ -498,6 +498,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Format the schedule using the new helper function
     const formattedSchedule = formatSchedule(details);
+    const activityUrl = window.location.href.split("#")[0];
+    const shareText = `Join me for ${name} at Mergington High School! ${formattedSchedule}`;
+    const shareLinks = {
+      whatsapp: `https://wa.me/?text=${encodeURIComponent(
+        `${shareText} ${activityUrl}`
+      )}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+        activityUrl
+      )}&quote=${encodeURIComponent(shareText)}`,
+      x: `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+        shareText
+      )}&url=${encodeURIComponent(activityUrl)}`,
+    };
 
     // Create activity tag
     const tagHtml = `
@@ -569,6 +582,12 @@ document.addEventListener("DOMContentLoaded", () => {
         `
         }
       </div>
+      <div class="share-actions">
+        <span class="share-label">Share:</span>
+        <button class="share-button" data-share-url="${shareLinks.whatsapp}" aria-label="Share on WhatsApp">WhatsApp</button>
+        <button class="share-button" data-share-url="${shareLinks.facebook}" aria-label="Share on Facebook">Facebook</button>
+        <button class="share-button" data-share-url="${shareLinks.x}" aria-label="Share on X">X</button>
+      </div>
     `;
 
     // Add click handlers for delete buttons
@@ -586,6 +605,14 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
     }
+
+    const shareButtons = activityCard.querySelectorAll(".share-button");
+    shareButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const shareUrl = button.dataset.shareUrl;
+        window.open(shareUrl, "_blank", "noopener,noreferrer");
+      });
+    });
 
     activitiesList.appendChild(activityCard);
   }
